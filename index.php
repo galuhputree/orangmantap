@@ -1,3 +1,36 @@
+<?php
+require_once __DIR__ . '/database.php';
+
+try {
+    $pdo = getAppDBConnection();
+
+    $stmt = $pdo->query("
+        SELECT id, problem, title, methodology, skills, result, impact, documentation
+        FROM projects
+        ORDER BY id DESC
+    ");
+    $projects = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Konversi methodology dan skills menjadi array
+    foreach ($projects as &$project) {
+        $project['methodology'] = !empty($project['methodology'])
+            ? array_map('trim', preg_split('/[\n,→]+/', $project['methodology']))
+            : [];
+
+        $project['skills'] = !empty($project['skills'])
+            ? array_map('trim', preg_split('/[\n,•]+/', $project['skills']))
+            : [];
+
+        // Nilai default jika kolom tidak tersedia
+        $project['icon'] = "🔬";
+        $project['title'] = $project['title'] ?? 'Untitled Project';
+        $project['question'] = $project['question'] ?? $project['problem'];
+    }
+    unset($project);
+} catch (Exception $e) {
+    die("Koneksi database gagal: " . $e->getMessage());
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,8 +39,14 @@
   <title>Med-Solve Laboratorium — Medical Technology, ITS</title>
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Kirim data dari PHP ke JavaScript -->
+  <script>
+    const projectsData = <?php echo json_encode($projects, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+  </script>
 </head>
 <body>
+
 
   <!-- ═══════════════════════════════════════════
        HERO SECTION
@@ -74,8 +113,17 @@
       </div>
 
       <div class="projects-grid" id="projects-grid">
-        <!-- Cards injected by JS -->
-      </div>
+<?php if (!empty($projects)): ?>
+    <?php foreach ($projects as $project): ?>
+        <div class="project-card" onclick="openDetail(<?php echo $project['id']; ?>)">
+    <h3><?php echo htmlspecialchars(substr($project['problem'], 0, 50)); ?>...</h3>
+    <p><?php echo htmlspecialchars(substr($project['question'], 0, 80)); ?>...</p>
+</div>
+    <?php endforeach; ?>
+<?php else: ?>
+    <p>Belum ada data project.</p>
+<?php endif; ?>
+</div>
     </div>
   </section>
 
@@ -85,6 +133,12 @@
   <section id="detail" class="section">
     <div class="detail-inner">
       <button class="btn-back" onclick="showSection('projects')">← Back to Projects</button>
+      <button class="btn-home" onclick="showSection('hero')" title="Home">🏠</button>
+
+<div style="margin: 10px 0;">
+  <button onclick="editProject()" class="btn-primary">✏️ Edit</button>
+  <button onclick="deleteProject()" class="btn-danger">🗑 Delete</button>
+</div>
 
       <h2 class="detail-title" id="detail-title"></h2>
       <p class="detail-question" id="detail-question"></p>
@@ -135,7 +189,7 @@
     <div class="upload-inner">
       <button class="btn-back" onclick="showSection('projects')">← Back to Projects</button>
 
-      <div class="upload-header-tag">Post A New Project!</div>
+      <div class="upload-header-tag" id="upload-title">Post A New Project!</div>
 
       <div class="upload-flow-diagram">
         <div class="uflow-box">

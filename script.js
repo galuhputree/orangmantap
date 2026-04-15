@@ -1,81 +1,10 @@
 /* ═══════════════════════════════════════════
    MED-SOLVE LABORATORIUM — script.js
 ═══════════════════════════════════════════ */
-
-// ─── PROJECT DATA ───────────────────────────
-const projects = [
-  {
-    id: 1,
-    title: "Desain Custom Cranioplasty Implant",
-    question: "How can cranial implants be precisely tailored to a patient's anatomy?",
-    problem: "Defek tulang kranium pasca trauma/operasi membutuhkan implan dengan kesesuaian anatomi tinggi, namun implan standar sering tidak presisi.",
-    methodology: [
-      "DICOM data processing",
-      "Bone defect segmentation",
-      "3D modeling (CAD)",
-      "3D printing mold",
-      "Silicon molding",
-      "PMMA fabrication"
-    ],
-    skills: [
-      "Medical image processing",
-      "CAD design",
-      "3D printing",
-      "Biomaterial fabrication"
-    ],
-    result: "Prototipe implan kranium kustom dengan kesesuaian anatomi yang tinggi berhasil diproduksi dan divalidasi secara geometris.",
-    impact: "Meningkatkan akurasi rekonstruksi tulang dan potensi outcome bedah bagi pasien dengan defek kranium post-trauma.",
-    icon: "🧠"
-  },
-  {
-    id: 2,
-    title: "Desain Nose Brace dan Pelindung Hidung",
-    question: "How can nasal protection be made more ergonomic and custom-fit?",
-    problem: "Pelindung hidung konvensional memiliki fit yang generik dan sering tidak nyaman digunakan dalam jangka panjang oleh pasien pasca operasi rhinoplasti.",
-    methodology: [
-      "Anthropometric measurement",
-      "3D face scanning",
-      "Parametric CAD modeling",
-      "Material selection (TPU)",
-      "Prototype fabrication",
-      "User comfort testing"
-    ],
-    skills: [
-      "Ergonomic design",
-      "3D scanning & modeling",
-      "Polymer engineering",
-      "Clinical testing protocol"
-    ],
-    result: "Prototipe nose brace kustom berbahan TPU fleksibel dengan penyesuaian anatomi hidung individual telah berhasil dikembangkan.",
-    impact: "Meningkatkan kenyamanan pasien dan efektivitas penyembuhan pasca operasi, dengan desain yang dapat dipersonalisasi per pasien.",
-    icon: "👃"
-  },
-  {
-    id: 3,
-    title: "Deep Learning Based Anemia Mobile App",
-    question: "How can anemia be detected without invasive blood tests?",
-    problem: "Pemeriksaan anemia konvensional memerlukan pengambilan darah yang invasif, sehingga tidak praktis untuk skrining massal, terutama di daerah dengan akses layanan kesehatan terbatas.",
-    methodology: [
-      "Conjunctival image dataset collection",
-      "Image preprocessing & augmentation",
-      "CNN architecture design",
-      "Model training & validation",
-      "Mobile app integration",
-      "Clinical accuracy testing"
-    ],
-    skills: [
-      "Deep learning (CNN)",
-      "Computer vision",
-      "Mobile app development",
-      "Medical dataset curation",
-      "Clinical validation"
-    ],
-    result: "Aplikasi mobile dengan akurasi deteksi anemia >85% melalui analisis warna konjungtiva menggunakan kamera smartphone standar.",
-    impact: "Memungkinkan skrining anemia non-invasif secara mandiri, memperluas jangkauan deteksi dini anemia di komunitas dan fasilitas kesehatan primer.",
-    icon: "🩸"
-  }
-];
-
+// ─── PROJECT DATA ─────────────────────────
+// Gunakan data dari PHP jika tersedia
+const projects = typeof projectsData !== 'undefined' ? projectsData : [];
+let currentProjectId = null;
 // ─── SECTION SWITCHING ───────────────────────
 function showSection(id) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -86,112 +15,170 @@ function showSection(id) {
   }
 }
 
+function deleteImage(imagePath, btn) {
+  if (!confirm("Hapus gambar ini?")) return;
+
+  fetch('delete_image.php', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      path: imagePath
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      showToast('Gambar dihapus', 'success');
+
+      // hapus dari tampilan
+      btn.parentElement.remove();
+    } else {
+      showToast('Gagal hapus gambar', 'warn');
+    }
+  });
+}
+
+let editMode = false;
+function editProject() {
+  const project = projects.find(p => p.id == currentProjectId);
+
+  editMode = true;
+
+  showSection('upload');
+
+  document.getElementById('u-problem').value = project.problem;
+  document.getElementById('u-solution').value = project.title;
+  document.getElementById('u-methodology').value = project.methodology.join('\n');
+  document.getElementById('u-skills').value = project.skills.join('\n');
+  document.getElementById('u-result').value = project.result;
+  document.getElementById('u-impact').value = project.impact;
+  // 🔽 LOAD GAMBAR LAMA
+const previewRow = document.getElementById('img-preview-row');
+//previewRow.innerHTML = '';
+
+fetch(`get_project_files.php?project_id=${currentProjectId}`)
+  .then(res => res.json())
+  .then(images => {
+    images.forEach(img => {
+      const div = document.createElement('div');
+      div.className = 'img-preview-item-wrapper';
+
+      div.innerHTML = `
+        <img src="./${img}" class="img-preview-item">
+        <button class="img-delete-btn" onclick="deleteImage('${img}', this)">✖</button>
+      `;
+
+      previewRow.appendChild(div);
+    });
+  });
+}
+
+
 // ─── RENDER PROJECT CARDS ────────────────────
 function renderProjects() {
   const grid = document.getElementById('projects-grid');
   if (!grid) return;
 
   grid.innerHTML = '';
+
   projects.forEach(p => {
     const card = document.createElement('div');
     card.className = 'project-card';
-    card.onclick = () => openDetail(p.id);
+    card.onclick = () => openDetail(p.id) ;
+
+    let firstImage = null;
+
+    if (p.documentation) {
+      try {
+        const imgs = JSON.parse(p.documentation);
+        firstImage = imgs[0];
+      } catch {
+        firstImage = p.documentation.split(',')[0];
+      }
+    }
+
     card.innerHTML = `
       <div class="card-img">
-        <span class="card-img-icon">${p.icon}</span>
+        ${firstImage 
+          ? `<img src="./${firstImage}" class="card-img-photo">`
+          : `<span class="card-img-icon">${p.icon}</span>`}
       </div>
       <div class="card-body">
         <div class="card-title">${p.title}</div>
         <p class="card-question">${p.question}</p>
       </div>
     `;
+
     grid.appendChild(card);
   });
 }
 
+    
 // ─── OPEN PROJECT DETAIL ─────────────────────
 function openDetail(id) {
-  const p = projects.find(proj => proj.id === id);
-  if (!p) return;
+  currentProjectId = id; // ⬅️ WAJIB ADA
+  const project = projects.find(p => p.id == id);
 
-  document.getElementById('detail-title').textContent = p.title;
-  document.getElementById('detail-question').textContent = p.question;
-  document.getElementById('detail-problem').textContent = p.problem;
+  document.getElementById("detail-title").innerText = project.title;
+  document.getElementById("detail-question").innerText = project.question;
+  document.getElementById("detail-problem").innerText = project.problem;
+  document.getElementById("detail-result").innerText = project.result;
+  document.getElementById("detail-impact").innerText = project.impact;
+  
+  // Methodology (pipeline)
+const methodDiv = document.getElementById("detail-methodology");
+methodDiv.innerHTML = "";
 
-  // Methodology pipeline
-  const methEl = document.getElementById('detail-methodology');
-  methEl.innerHTML = p.methodology.map((step, i) =>
-    `<span class="pipeline-step">${step}</span>${i < p.methodology.length - 1 ? '<span class="pipeline-arrow">→</span>' : ''}`
-  ).join('');
+project.methodology.forEach(step => {
+  const el = document.createElement("div");
+  el.className = "pipeline-step";
+  el.innerText = step;
+  methodDiv.appendChild(el);
+});
 
-  // Skills list
-  const skillsEl = document.getElementById('detail-skills');
-  skillsEl.innerHTML = p.skills.map(s => `<li>${s}</li>`).join('');
+// Skills (list)
+const skillsUl = document.getElementById("detail-skills");
+skillsUl.innerHTML = "";
 
-  document.getElementById('detail-result').textContent = p.result;
-  document.getElementById('detail-impact').textContent = p.impact;
+project.skills.forEach(skill => {
+  const li = document.createElement("li");
+  li.innerText = skill;
+  skillsUl.appendChild(li);
+});
 
-  showSection('detail');
-}
+  const docsGrid = document.querySelector(".docs-grid");
+  docsGrid.innerHTML = "";
 
-// ─── UPLOAD HANDLER ──────────────────────────
-function handleImageUpload(input) {
-  const preview = document.getElementById('img-preview-row');
-  preview.innerHTML = '';
-  const files = Array.from(input.files);
-  files.forEach(file => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const img = document.createElement('img');
-      img.className = 'img-preview-item';
-      img.src = e.target.result;
-      preview.appendChild(img);
-    };
-    reader.readAsDataURL(file);
-  });
-}
+  fetch(`get_project_files.php?project_id=${id}`)
+    .then(res => res.json())
+    .then(images => {
+      docsGrid.innerHTML = "";
 
-function handleUpload() {
-  const problem    = document.getElementById('u-problem').value.trim();
-  const solution   = document.getElementById('u-solution').value.trim();
-  const methodology = document.getElementById('u-methodology').value.trim();
-  const skills     = document.getElementById('u-skills').value.trim();
-  const impact     = document.getElementById('u-impact').value.trim();
-  const result     = document.getElementById('u-result').value.trim();
+      if (!images || images.length === 0) {
+        docsGrid.innerHTML = "<p>Tidak ada dokumentasi</p>";
+        return;
+      }
 
-  if (!problem || !solution) {
-    showToast('Please fill in at least the Problem and Solution fields.', 'warn');
-    return;
-  }
+      images.forEach(img => {
+        const div = document.createElement("div");
+        div.className = "doc-item";
 
-  // Build a new project entry
-  const newProject = {
-    id: projects.length + 1,
-    title: solution.slice(0, 60) + (solution.length > 60 ? '...' : ''),
-    question: problem.slice(0, 100) + (problem.length > 100 ? '...' : ''),
-    problem: problem,
-    methodology: methodology ? methodology.split(/[\n,→]+/).map(s => s.trim()).filter(Boolean) : ["See description"],
-    skills: skills ? skills.split(/[\n,•]+/).map(s => s.trim()).filter(Boolean) : [],
-    result: result || "—",
-    impact: impact || "—",
-    icon: "🔬"
-  };
+        const image = document.createElement("img");
+        image.src = "./" + img;
+        image.className = "doc-image";
 
-  projects.push(newProject);
+        div.appendChild(image);
+        docsGrid.appendChild(div);
+      });
+    })
+    .catch(err => {
+      console.error(err);
+      docsGrid.innerHTML = "<p>Gagal load gambar</p>";
+    });
 
-  // Reset form
-  ['u-problem','u-solution','u-methodology','u-skills','u-impact','u-result'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
-  document.getElementById('img-preview-row').innerHTML = '';
-  document.getElementById('img-upload').value = '';
-
-  showToast('Project uploaded successfully!', 'success');
-
-  setTimeout(() => {
-    renderProjects();
-    showSection('projects');
-  }, 1200);
+  showSection('detail'); // ⬅️ jangan lupa ini!
 }
 
 // ─── TOAST NOTIFICATION ──────────────────────
@@ -207,7 +194,7 @@ function showToast(message, type = 'success') {
     position: 'fixed',
     bottom: '2rem',
     left: '50%',
-    transform: 'translateX(-50%) translateY(20px)',
+    transform: 'translateX(-50%)',
     background: type === 'success' ? '#1a3460' : '#c0602a',
     color: '#fff',
     padding: '0.85rem 2rem',
@@ -218,21 +205,64 @@ function showToast(message, type = 'success') {
     zIndex: '9999',
     boxShadow: '0 8px 28px rgba(0,0,0,0.22)',
     opacity: '0',
-    transition: 'opacity 0.3s, transform 0.3s',
-    letterSpacing: '0.02em'
+    transition: 'opacity 0.3s ease'
   });
 
   document.body.appendChild(toast);
+
+  // Animasi muncul
   requestAnimationFrame(() => {
     toast.style.opacity = '1';
-    toast.style.transform = 'translateX(-50%) translateY(0)';
   });
 
+  // Hilang setelah 3 detik
   setTimeout(() => {
     toast.style.opacity = '0';
-    toast.style.transform = 'translateX(-50%) translateY(10px)';
-    setTimeout(() => toast.remove(), 350);
+    setTimeout(() => toast.remove(), 300);
   }, 3000);
+}
+// ─── UPLOAD HANDLER ──────────────────────────
+function handleUpload() {
+  const formData = new FormData();
+
+  formData.append('problem', document.getElementById('u-problem').value.trim());
+  formData.append('title', document.getElementById('u-solution').value.trim());
+  formData.append('methodology', document.getElementById('u-methodology').value.trim());
+  formData.append('skills', document.getElementById('u-skills').value.trim());
+  formData.append('result', document.getElementById('u-result').value.trim());
+  formData.append('impact', document.getElementById('u-impact').value.trim());
+  formData.append('id', currentProjectId);
+  formData.append('editMode', editMode);
+
+  const imageInput = document.getElementById('img-upload');
+  Array.from(imageInput.files).forEach(file => {
+    formData.append('images[]', file);
+  });
+
+  fetch('upload_project.php', {
+    method: 'POST',
+    body: formData
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+  showToast('Project berhasil disimpan!', 'success');
+
+  const id = data.projectId;
+
+  setTimeout(() => {
+    currentProjectId = id;
+
+    // reload data dulu (opsional tapi bagus)
+    localStorage.setItem('openProjectAfterReload', id);
+    location.reload();
+  }, 800);
+}
+    })
+    .catch(error => {
+      console.error(error);
+      showToast('Upload failed.', 'warn');
+    });
 }
 
 // ─── INIT ─────────────────────────────────────
@@ -268,4 +298,95 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.head.appendChild(style);
   }
+  const openId = localStorage.getItem('openProjectAfterReload');
+
+if (openId) {
+  localStorage.removeItem('openProjectAfterReload');
+
+  setTimeout(() => {
+    openDetail(openId);
+  }, 300);
+}
 });
+
+function handleImageUpload(input) {
+  const preview = document.getElementById('img-preview-row');
+
+  const files = Array.from(input.files);
+  if (files.length === 0) return;
+
+  files.forEach((file, index) => {
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'img-preview-item-wrapper';
+
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.className = 'img-preview-item';
+
+      // tombol hapus
+      const btn = document.createElement('button');
+      btn.className = 'img-delete-btn';
+      btn.innerText = '✖';
+
+      btn.onclick = () => {
+        wrapper.remove();
+
+        // ❗ hapus file dari input juga
+        removeFileFromInput(file);
+      };
+
+      wrapper.appendChild(img);
+      wrapper.appendChild(btn);
+      preview.appendChild(wrapper);
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
+
+function removeFileFromInput(fileToRemove) {
+  const input = document.getElementById('img-upload');
+  const dt = new DataTransfer();
+
+  Array.from(input.files).forEach(file => {
+    if (file !== fileToRemove) {
+      dt.items.add(file);
+    }
+  });
+
+  input.files = dt.files;
+}
+
+function deleteProject() {
+  if (!confirm("Yakin mau hapus project ini?")) return;
+
+  fetch('delete_project.php', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      id: currentProjectId
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      showToast('Project berhasil dihapus', 'success');
+
+      // balik ke halaman project
+      setTimeout(() => {
+        location.reload();
+      }, 1000);
+    } else {
+      showToast('Gagal hapus project', 'warn');
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    showToast('Error delete project', 'warn');
+  });
+}

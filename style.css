@@ -106,6 +106,46 @@ em { font-family: 'Lora', Georgia, serif; font-style: italic; }
 }
 .btn-home:hover { background: #122650; transform: scale(1.07); }
 
+.card-img-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;   /* ini penting */
+  display: block;
+}
+
+
+.docs-grid img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.doc-item {
+  width: 100%;
+  height: 140px;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.doc-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* ⬅️ WAJIB */
+  display: block;
+}
+
+.doc-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.doc-image:hover {
+  transform: scale(1.03);
+}
+
 /* ═══════════════════════════════════════════
    ══ HERO SECTION ══
 ═══════════════════════════════════════════ */
@@ -482,11 +522,14 @@ em { font-family: 'Lora', Georgia, serif; font-style: italic; }
   border-radius: 6px;
   margin-bottom: 1.2rem;
 }
+
 .docs-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
+  align-items: start;
 }
+
 .doc-placeholder {
   aspect-ratio: 4/3;
   border-radius: 12px;
@@ -642,6 +685,68 @@ em { font-family: 'Lora', Georgia, serif; font-style: italic; }
   margin-top: 1rem;
 }
 .btn-upload-submit { padding: 0.85rem 3.5rem; font-size: 1rem; letter-spacing: 0.15em; }
+
+.doc-item {
+  width: 100%;
+  height: 140px;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.doc-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.img-preview-item-wrapper {
+  position: relative;
+  width: 90px;
+  height: 90px;
+}
+
+.img-delete-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.img-delete-btn:hover {
+  background: #c0392b;
+}
+
+.btn-danger {
+  display: inline-block;
+  background: #e74c3c;
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  padding: 0.85rem 2.6rem; /* SAMAIN */
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 16px rgba(231, 76, 60, 0.25);
+}
+
+.btn-danger:hover {
+  background: #c0392b;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(231, 76, 60, 0.35);
+}
 
 /* ═══════════════════════════════════════════
    RESPONSIVE

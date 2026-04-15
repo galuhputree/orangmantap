@@ -1,280 +1,271 @@
-/* ============================================
-   BioMedEng — script.js
-   ============================================ */
+/* ═══════════════════════════════════════════
+   MED-SOLVE LABORATORIUM — script.js
+═══════════════════════════════════════════ */
 
-// ===== NAV SCROLL =====
-const navbar = document.getElementById('navbar');
-window.addEventListener('scroll', () => {
-  if (window.scrollY > 20) {
-    navbar.classList.add('scrolled');
-  } else {
-    navbar.classList.remove('scrolled');
+// ─── PROJECT DATA ───────────────────────────
+const projects = [
+  {
+    id: 1,
+    title: "Desain Custom Cranioplasty Implant",
+    question: "How can cranial implants be precisely tailored to a patient's anatomy?",
+    problem: "Defek tulang kranium pasca trauma/operasi membutuhkan implan dengan kesesuaian anatomi tinggi, namun implan standar sering tidak presisi.",
+    methodology: [
+      "DICOM data processing",
+      "Bone defect segmentation",
+      "3D modeling (CAD)",
+      "3D printing mold",
+      "Silicon molding",
+      "PMMA fabrication"
+    ],
+    skills: [
+      "Medical image processing",
+      "CAD design",
+      "3D printing",
+      "Biomaterial fabrication"
+    ],
+    result: "Prototipe implan kranium kustom dengan kesesuaian anatomi yang tinggi berhasil diproduksi dan divalidasi secara geometris.",
+    impact: "Meningkatkan akurasi rekonstruksi tulang dan potensi outcome bedah bagi pasien dengan defek kranium post-trauma.",
+    icon: "🧠"
+  },
+  {
+    id: 2,
+    title: "Desain Nose Brace dan Pelindung Hidung",
+    question: "How can nasal protection be made more ergonomic and custom-fit?",
+    problem: "Pelindung hidung konvensional memiliki fit yang generik dan sering tidak nyaman digunakan dalam jangka panjang oleh pasien pasca operasi rhinoplasti.",
+    methodology: [
+      "Anthropometric measurement",
+      "3D face scanning",
+      "Parametric CAD modeling",
+      "Material selection (TPU)",
+      "Prototype fabrication",
+      "User comfort testing"
+    ],
+    skills: [
+      "Ergonomic design",
+      "3D scanning & modeling",
+      "Polymer engineering",
+      "Clinical testing protocol"
+    ],
+    result: "Prototipe nose brace kustom berbahan TPU fleksibel dengan penyesuaian anatomi hidung individual telah berhasil dikembangkan.",
+    impact: "Meningkatkan kenyamanan pasien dan efektivitas penyembuhan pasca operasi, dengan desain yang dapat dipersonalisasi per pasien.",
+    icon: "👃"
+  },
+  {
+    id: 3,
+    title: "Deep Learning Based Anemia Mobile App",
+    question: "How can anemia be detected without invasive blood tests?",
+    problem: "Pemeriksaan anemia konvensional memerlukan pengambilan darah yang invasif, sehingga tidak praktis untuk skrining massal, terutama di daerah dengan akses layanan kesehatan terbatas.",
+    methodology: [
+      "Conjunctival image dataset collection",
+      "Image preprocessing & augmentation",
+      "CNN architecture design",
+      "Model training & validation",
+      "Mobile app integration",
+      "Clinical accuracy testing"
+    ],
+    skills: [
+      "Deep learning (CNN)",
+      "Computer vision",
+      "Mobile app development",
+      "Medical dataset curation",
+      "Clinical validation"
+    ],
+    result: "Aplikasi mobile dengan akurasi deteksi anemia >85% melalui analisis warna konjungtiva menggunakan kamera smartphone standar.",
+    impact: "Memungkinkan skrining anemia non-invasif secara mandiri, memperluas jangkauan deteksi dini anemia di komunitas dan fasilitas kesehatan primer.",
+    icon: "🩸"
   }
-});
-
-// ===== HAMBURGER =====
-const hamburger = document.getElementById('hamburger');
-const mobileMenu = document.getElementById('mobileMenu');
-
-hamburger.addEventListener('click', () => {
-  hamburger.classList.toggle('open');
-  mobileMenu.classList.toggle('open');
-});
-
-// Close mobile menu on link click
-document.querySelectorAll('.mob-link').forEach(link => {
-  link.addEventListener('click', () => {
-    hamburger.classList.remove('open');
-    mobileMenu.classList.remove('open');
-  });
-});
-
-// ===== ACTIVE NAV LINK =====
-const sections = document.querySelectorAll('section[id]');
-const navLinks = document.querySelectorAll('.nav-link');
-
-const observerNav = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      const id = entry.target.getAttribute('id');
-      navLinks.forEach(link => {
-        link.classList.remove('active');
-        if (link.getAttribute('href') === `#${id}`) {
-          link.classList.add('active');
-        }
-      });
-    }
-  });
-}, { rootMargin: '-40% 0px -55% 0px' });
-
-sections.forEach(s => observerNav.observe(s));
-
-// ===== COUNTER ANIMATION =====
-function animateCounter(el) {
-  const target = parseInt(el.getAttribute('data-target'));
-  const duration = 1800;
-  const start = performance.now();
-
-  const update = (time) => {
-    const elapsed = time - start;
-    const progress = Math.min(elapsed / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3);
-    el.textContent = Math.round(eased * target);
-    if (progress < 1) requestAnimationFrame(update);
-  };
-  requestAnimationFrame(update);
-}
-
-const counterObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.querySelectorAll('.stat-num[data-target]').forEach(el => {
-        animateCounter(el);
-      });
-      counterObserver.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.5 });
-
-const heroStats = document.querySelector('.hero-stats');
-if (heroStats) counterObserver.observe(heroStats);
-
-// ===== FLOW STEPS ANIMATION =====
-const stepObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      const steps = entry.target.querySelectorAll('.flow-step');
-      steps.forEach((step, i) => {
-        setTimeout(() => {
-          step.classList.add('visible');
-        }, i * 120);
-      });
-      stepObserver.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.05 });
-
-document.querySelectorAll('.case-flow').forEach(flow => stepObserver.observe(flow));
-
-// ===== IMPACT BARS ANIMATION =====
-const barObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.querySelectorAll('.ibar-fill').forEach((bar, i) => {
-        const width = bar.getAttribute('data-width');
-        setTimeout(() => {
-          bar.style.width = width + '%';
-        }, i * 150 + 200);
-      });
-      barObserver.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.3 });
-
-const barSection = document.querySelector('.impact-bar-section');
-if (barSection) barObserver.observe(barSection);
-
-// ===== GENERIC FADE IN ON SCROLL =====
-const fadeObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.style.opacity = '1';
-      entry.target.style.transform = 'translateY(0)';
-      fadeObserver.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-
-// Apply fade-in to cards
-const fadeTargets = [
-  '.problem-card',
-  '.impact-card',
-  '.team-card',
-  '.pipe-node',
-  '.collab-item'
 ];
 
-fadeTargets.forEach(selector => {
-  document.querySelectorAll(selector).forEach((el, i) => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(24px)';
-    el.style.transition = `opacity 0.5s ease ${i * 0.08}s, transform 0.5s ease ${i * 0.08}s, border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease`;
-    fadeObserver.observe(el);
-  });
-});
-
-// ===== SMOOTH SCROLL ANCHOR =====
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', e => {
-    const target = document.querySelector(anchor.getAttribute('href'));
-    if (target) {
-      e.preventDefault();
-      const offset = document.getElementById('navbar').offsetHeight;
-      const top = target.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({ top, behavior: 'smooth' });
-    }
-  });
-});
-
-// ===== PROBLEM CARDS → PROJECT LINK =====
-document.querySelectorAll('.prob-link').forEach(link => {
-  link.addEventListener('click', e => {
-    const href = link.getAttribute('href');
-    if (href && href.startsWith('#')) {
-      e.preventDefault();
-      const target = document.querySelector(href);
-      if (target) {
-        const offset = document.getElementById('navbar').offsetHeight;
-        const top = target.getBoundingClientRect().top + window.scrollY - offset - 16;
-        window.scrollTo({ top, behavior: 'smooth' });
-
-        // Highlight the card briefly
-        target.style.borderColor = 'var(--accent)';
-        target.style.boxShadow = '0 0 40px rgba(0, 200, 255, 0.15)';
-        setTimeout(() => {
-          target.style.borderColor = '';
-          target.style.boxShadow = '';
-          target.style.transition = 'border-color 1s ease, box-shadow 1s ease';
-        }, 1500);
-      }
-    }
-  });
-});
-
-// ===== SECTION HEADER ANIMATION =====
-const headerObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('anim-in');
-      headerObserver.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.2 });
-
-document.querySelectorAll('.section-header').forEach(h => {
-  h.style.opacity = '0';
-  h.style.transform = 'translateY(20px)';
-  h.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-  headerObserver.observe(h);
-});
-
-// Add CSS for anim-in
-const style = document.createElement('style');
-style.textContent = `.section-header.anim-in { opacity: 1 !important; transform: translateY(0) !important; }`;
-document.head.appendChild(style);
-
-// ===== HEXA GRID HOVER EFFECT =====
-document.querySelectorAll('.hexa').forEach((hexa, i) => {
-  hexa.style.animationDelay = `${i * 0.1}s`;
-
-  hexa.addEventListener('mouseenter', () => {
-    document.querySelectorAll('.hexa').forEach(h => {
-      if (h !== hexa) {
-        h.style.opacity = '0.5';
-      }
-    });
-  });
-
-  hexa.addEventListener('mouseleave', () => {
-    document.querySelectorAll('.hexa').forEach(h => {
-      h.style.opacity = '1';
-    });
-  });
-});
-
-// ===== PROJECT CASE — STAGGER REVEAL =====
-const caseObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.style.opacity = '1';
-      entry.target.style.transform = 'translateY(0)';
-      caseObserver.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.05 });
-
-document.querySelectorAll('.project-case').forEach((el, i) => {
-  el.style.opacity = '0';
-  el.style.transform = 'translateY(32px)';
-  el.style.transition = `opacity 0.7s ease ${i * 0.15}s, transform 0.7s ease ${i * 0.15}s`;
-  caseObserver.observe(el);
-});
-
-// ===== KEYBOARD ACCESSIBILITY =====
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    hamburger.classList.remove('open');
-    mobileMenu.classList.remove('open');
+// ─── SECTION SWITCHING ───────────────────────
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById(id);
+  if (target) {
+    target.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
-});
-
-// ===== PERFORMANCE: Lazy hexagon animation =====
-const heroSection = document.querySelector('.hero');
-if (heroSection) {
-  const hexaObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      const hexas = document.querySelectorAll('.hexa');
-      if (entry.isIntersecting) {
-        hexas.forEach((h, i) => {
-          h.style.animation = `hexaPulse ${3 + i * 0.5}s ease-in-out ${i * 0.2}s infinite`;
-        });
-      } else {
-        hexas.forEach(h => { h.style.animation = 'none'; });
-      }
-    });
-  });
-  hexaObserver.observe(heroSection);
 }
 
-// Inject hexa animation keyframe
-const hexaStyle = document.createElement('style');
-hexaStyle.textContent = `
-  @keyframes hexaPulse {
-    0%, 100% { box-shadow: none; }
-    50% { box-shadow: 0 0 16px rgba(0, 200, 255, 0.15); }
-  }
-`;
-document.head.appendChild(hexaStyle);
+// ─── RENDER PROJECT CARDS ────────────────────
+function renderProjects() {
+  const grid = document.getElementById('projects-grid');
+  if (!grid) return;
 
-console.log('%cBioMedEng | Engineering the Future of Medicine', 'color: #00c8ff; font-family: monospace; font-size: 14px; font-weight: bold;');
-console.log('%cBuilt with precision. Every pixel intentional.', 'color: #5a7a99; font-family: monospace; font-size: 11px;');
+  grid.innerHTML = '';
+  projects.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'project-card';
+    card.onclick = () => openDetail(p.id);
+    card.innerHTML = `
+      <div class="card-img">
+        <span class="card-img-icon">${p.icon}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${p.title}</div>
+        <p class="card-question">${p.question}</p>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ─── OPEN PROJECT DETAIL ─────────────────────
+function openDetail(id) {
+  const p = projects.find(proj => proj.id === id);
+  if (!p) return;
+
+  document.getElementById('detail-title').textContent = p.title;
+  document.getElementById('detail-question').textContent = p.question;
+  document.getElementById('detail-problem').textContent = p.problem;
+
+  // Methodology pipeline
+  const methEl = document.getElementById('detail-methodology');
+  methEl.innerHTML = p.methodology.map((step, i) =>
+    `<span class="pipeline-step">${step}</span>${i < p.methodology.length - 1 ? '<span class="pipeline-arrow">→</span>' : ''}`
+  ).join('');
+
+  // Skills list
+  const skillsEl = document.getElementById('detail-skills');
+  skillsEl.innerHTML = p.skills.map(s => `<li>${s}</li>`).join('');
+
+  document.getElementById('detail-result').textContent = p.result;
+  document.getElementById('detail-impact').textContent = p.impact;
+
+  showSection('detail');
+}
+
+// ─── UPLOAD HANDLER ──────────────────────────
+function handleImageUpload(input) {
+  const preview = document.getElementById('img-preview-row');
+  preview.innerHTML = '';
+  const files = Array.from(input.files);
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.createElement('img');
+      img.className = 'img-preview-item';
+      img.src = e.target.result;
+      preview.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function handleUpload() {
+  const problem    = document.getElementById('u-problem').value.trim();
+  const solution   = document.getElementById('u-solution').value.trim();
+  const methodology = document.getElementById('u-methodology').value.trim();
+  const skills     = document.getElementById('u-skills').value.trim();
+  const impact     = document.getElementById('u-impact').value.trim();
+  const result     = document.getElementById('u-result').value.trim();
+
+  if (!problem || !solution) {
+    showToast('Please fill in at least the Problem and Solution fields.', 'warn');
+    return;
+  }
+
+  // Build a new project entry
+  const newProject = {
+    id: projects.length + 1,
+    title: solution.slice(0, 60) + (solution.length > 60 ? '...' : ''),
+    question: problem.slice(0, 100) + (problem.length > 100 ? '...' : ''),
+    problem: problem,
+    methodology: methodology ? methodology.split(/[\n,→]+/).map(s => s.trim()).filter(Boolean) : ["See description"],
+    skills: skills ? skills.split(/[\n,•]+/).map(s => s.trim()).filter(Boolean) : [],
+    result: result || "—",
+    impact: impact || "—",
+    icon: "🔬"
+  };
+
+  projects.push(newProject);
+
+  // Reset form
+  ['u-problem','u-solution','u-methodology','u-skills','u-impact','u-result'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('img-preview-row').innerHTML = '';
+  document.getElementById('img-upload').value = '';
+
+  showToast('Project uploaded successfully!', 'success');
+
+  setTimeout(() => {
+    renderProjects();
+    showSection('projects');
+  }, 1200);
+}
+
+// ─── TOAST NOTIFICATION ──────────────────────
+function showToast(message, type = 'success') {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = message;
+
+  Object.assign(toast.style, {
+    position: 'fixed',
+    bottom: '2rem',
+    left: '50%',
+    transform: 'translateX(-50%) translateY(20px)',
+    background: type === 'success' ? '#1a3460' : '#c0602a',
+    color: '#fff',
+    padding: '0.85rem 2rem',
+    borderRadius: '50px',
+    fontSize: '0.9rem',
+    fontWeight: '500',
+    fontFamily: "'DM Sans', sans-serif",
+    zIndex: '9999',
+    boxShadow: '0 8px 28px rgba(0,0,0,0.22)',
+    opacity: '0',
+    transition: 'opacity 0.3s, transform 0.3s',
+    letterSpacing: '0.02em'
+  });
+
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+  });
+
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(10px)';
+    setTimeout(() => toast.remove(), 350);
+  }, 3000);
+}
+
+// ─── INIT ─────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  renderProjects();
+
+  // Hero scroll hint
+  const hero = document.getElementById('hero');
+  if (hero) {
+    const hint = document.createElement('div');
+    Object.assign(hint.style, {
+      position: 'absolute',
+      bottom: '2rem',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      fontSize: '1.4rem',
+      color: 'rgba(26,52,96,0.35)',
+      animation: 'bounce 2s ease-in-out infinite',
+      cursor: 'pointer',
+      userSelect: 'none'
+    });
+    hint.textContent = '⌄';
+    hint.onclick = () => showSection('projects');
+    hero.appendChild(hint);
+
+    // Add bounce keyframe dynamically
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes bounce {
+        0%, 100% { transform: translateX(-50%) translateY(0); }
+        50%       { transform: translateX(-50%) translateY(8px); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+});
